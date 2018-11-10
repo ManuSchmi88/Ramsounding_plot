@@ -73,4 +73,4 @@ class ramsounding(self):
 
         self.total_depth = self.zero_elevation + len(self.n10_values) * 0.1 
 
-    
+     
