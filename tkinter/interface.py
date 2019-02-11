@@ -174,7 +174,7 @@ class figure_page(tk.Frame):
 
         #initialize frame and label
         tk.Frame.__init__(self, parent)
-        self.figure_label = tk.Label(self, text= 'FIGUREPAGE_SINGLEFIGURE', font = large_font)
+        self.figure_label = tk.Label(self, text= 'Schlagzahl Auswertung', font = large_font)
         self.figure_label.grid(column = 0, row = 0 )
 
         #button to navigate back to main_frame
@@ -211,6 +211,10 @@ class figure_page(tk.Frame):
         lower_ylim = round(dp.data_container['rms_depth'] + 0.5)
         self.ax.set_ylim(lower_ylim,0)
         self.ax.xaxis.tick_top()
+
+        self.ax.set_xlabel("Schlagzahl", fontsize = 18)
+        self.ax.set_ylabel("Tiefe [m]", fontsize = 18)
+
         canvas = FigureCanvasTkAgg(self.fig, self)
         canvas.draw()
         canvas.get_tk_widget().grid(column = 1, row = 1, pady = 15)
@@ -270,14 +274,20 @@ class figure_page(tk.Frame):
         """
         If box is checked, it fills the space between the y-axis and the values
         """
-
-        ax.fill_betweenx(dp.nn_depth_array, dp.nn_data_array, hatch = '/')
+        ax.fill_betweenx(dp.nn_depth_array, dp.nn_data_array, hatch = '/', color = 'k', alpha = 0.3)
 
     def with_grid(self, fig, ax):
         """
         If box is checked, plot gets a grid
         """
         ax.grid(linewidth = 1.2)
+
+    def add_label_automatically(self, fig, ax):
+        """
+        add a label, the first time we have 50cm of a specific ground e.g steif
+        """
+
+        print("This is going to be complicated")
 
     def back_to_home(self):
         """
