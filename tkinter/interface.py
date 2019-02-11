@@ -6,6 +6,7 @@ Created by Manuel Schmid, Arbeitsloser Tunichtgut, 7.Februar 2019
 
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import asksaveasfilename
 from tkinter.filedialog import askdirectory
 import matplotlib
 matplotlib.use('TkAgg')
@@ -84,7 +85,7 @@ class App(tk.Tk):
         #dictionarty which holds all the pages
         self.frames = {}
 
-        for F in (landing_page, figure_page, multiple_figures_page):
+        for F in (landing_page, figure_page):
             frame = F(master_frame, self)
             self.frames[F] = frame
             frame.grid(row = 0, column = 0, sticky = 'nsew')
@@ -111,8 +112,7 @@ class landing_page(tk.Frame):
         #self.front_label.pack()
         self.front_label.grid(column = 0, row = 0, padx = 50, pady = 15)
         self.button_open_file = tk.Button(
-            self, text = 'Öffne .dat Dateien', fg = 'red', command = self.open_file
-            )
+            self, text = 'Öffne .dat Dateien', fg = 'red', command = self.open_file)
         self.button_open_file.grid(column = 0, row = 1, pady = 15)
 
         self.button_load_directory = tk.Button(self, text = 'Öffne Ordner', command=self.open_folder)
@@ -166,53 +166,40 @@ class figure_page(tk.Frame):
 
         #button to navigate back to main_frame
         self.back_button = tk.Button(self, text = 'Back', command = self.back_to_home)
-        self.back_button.grid(row = 0, column = 1) 
+        self.back_button.grid(row = 0, column = 3) 
 
         self.print_button = tk.Button(self, text = 'Show', command = self.show_figure)
+        self.print_button.grid(row = 0, column = 1)
+
+        self.print_button = tk.Button(self, text = 'Save', command = self.save_figure)
         self.print_button.grid(row = 0, column = 2)
 
-        f = Figure()
-
     def show_figure(self):
-        print('Show figure function was called!')
 
-        print(dp.nn_data_array)
+        print('show_figure function was called!')
 
-        fig, ax = plt.subplots(1)
-        ax.plot(dp.nn_data_array, dp.nn_depth_array)
-        canvas = FigureCanvasTkAgg(fig, self)
+        self.fig, self.ax = plt.subplots(1)
+        self.ax.plot(dp.nn_data_array, dp.nn_depth_array)
+        canvas = FigureCanvasTkAgg(self.fig, self)
         canvas.draw()
-
         canvas.get_tk_widget().grid(column = 1, row = 1, pady = 15)
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        #toolbar.update()
+
+    def save_figure(self):
+
+        print('save_figure function was called!')
+
+        filename = asksaveasfilename()
+        plt.savefig(str(filename))
 
     def back_to_home(self):
         """
         This probably can get a global function. 
         Navigates back to home
         """
+        #plt.close(self.fig)
         self.controller.show_frame(landing_page)
-
-class multiple_figures_page(tk.Frame):
-    def __init__(self, parent, controller):
-
-        #add the controller to self.namespace
-        self.controller = controller
-
-        tk.Frame.__init__(self,parent)
-        self.multiple_figures_label = tk.Label(self, text = 'Multiple Figures', font = large_font)
-        self.multiple_figures_label.grid(column = 0, row = 0)
-
-        #button to navigate back to main_frame
-        self.back_button = tk.Button(self, text = 'Back', command = self.back_to_home)
-        self.back_button.grid(row = 0, column = 1)
-        
-    def back_to_home(self):
-        """
-        This probably can get a global function. 
-        Navigates back to home
-        """
-        self.controller.show_frame(landing_page)
-
 
 #initialise data_container class globally
 dp = Data_provider()
