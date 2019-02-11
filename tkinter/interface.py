@@ -29,6 +29,7 @@ class Data_provider(object):
 
         self.data_container = {}
         self.depth_array = 0
+        
         self.nn_data_array = 0
         self.nn_depth_array = 0
 
@@ -103,7 +104,7 @@ class landing_page(tk.Frame):
     First Page that pops up if programm is started. 
     """
     def __init__(self, parent, controller):
-        
+                
         self.controller = controller
 
         tk.Frame.__init__(self, parent)
@@ -149,11 +150,19 @@ class landing_page(tk.Frame):
         dp.data_container['rms_depth'] = ca.get_total_depth(dp)
         dp.nn_data_array , dp.nn_depth_array = ca.convert_data_to_plot_format(dp)
 
+        global test1
+        global test2
+        test1 = dp.nn_data_array
+        test2 = dp.nn_depth_array
+
+        print(test1, test2)
+        
         #DEBUG
-        print(dp.nn_data_array)
-        print(dp.data_container['rms_depth'])
+        #print(dp.nn_data_array)
+        #print(dp.data_container['rms_depth'])
 
 class figure_page(tk.Frame):
+    
     def __init__(self, parent, controller):
   
         #add the controller to self.namespace
@@ -174,16 +183,19 @@ class figure_page(tk.Frame):
         self.print_button = tk.Button(self, text = 'Save', command = self.save_figure)
         self.print_button.grid(row = 0, column = 2)
 
+        self.show_figure()
+
     def show_figure(self):
 
         print('show_figure function was called!')
 
         self.fig, self.ax = plt.subplots(1)
         self.ax.plot(dp.nn_data_array, dp.nn_depth_array)
+        #self.ax.plot(test1, test2)
         canvas = FigureCanvasTkAgg(self.fig, self)
         canvas.draw()
         canvas.get_tk_widget().grid(column = 1, row = 1, pady = 15)
-        toolbar = NavigationToolbar2Tk(canvas, self)
+        #toolbar = NavigationToolbar2Tk(canvas, self)
         #toolbar.update()
 
     def save_figure(self):
@@ -202,9 +214,10 @@ class figure_page(tk.Frame):
         self.controller.show_frame(landing_page)
 
 #initialise data_container class globally
-dp = Data_provider()
-ca = Calculator()
-app = App()
+if __name__ == '__main__':
+    dp = Data_provider()
+    ca = Calculator()
+    app = App()
 
 app.mainloop()
 #root.destroy()
