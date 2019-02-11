@@ -24,7 +24,6 @@ class Data_provider(object):
     """
     Class which is used to hold data for plotting
     """
-    
     def __init__(self):
 
         self.data_container = {}
@@ -60,13 +59,10 @@ class Calculator(object):
 
         #expand depth_array to get a more nearest-neighbour like look
         nn_depth_array = np.arange(0, container.data_container['rms_depth'], 0.1 / 100)
-        nn_data_array = np.repeat(container.data_container['raw_data'],100)
+        nn_data_array = np.repeat(container.data_container['raw_data'], 1000)
 
         return nn_depth_array, nn_data_array
         
-#initialise data_container class globally
-dp = Data_provider()
-ca = Calculator()
 
 class App(tk.Tk):
 
@@ -75,6 +71,7 @@ class App(tk.Tk):
     """
 
     def __init__(self, *args, **kwargs):
+
 
         tk.Tk.__init__(self, *args, **kwargs)
 
@@ -153,8 +150,8 @@ class landing_page(tk.Frame):
         dp.nn_data_array , dp.nn_depth_array = ca.convert_data_to_plot_format(dp)
 
         #DEBUG
-        #print(dp.nn_data_array)
-        #print(dp.data_container['rms_depth'])
+        print(dp.nn_data_array)
+        print(dp.data_container['rms_depth'])
 
 class figure_page(tk.Frame):
     def __init__(self, parent, controller):
@@ -171,25 +168,16 @@ class figure_page(tk.Frame):
         self.back_button = tk.Button(self, text = 'Back', command = self.back_to_home)
         self.back_button.grid(row = 0, column = 1) 
 
-        #f = Figure(figsize = [8,8], dpi = 100)
-        #a = f.add_subplot(111)
+        self.print_button = tk.Button(self, text = 'Show', command = self.show_figure)
+        self.print_button.grid(row = 0, column = 2)
 
-        #a.plot(dp.nn_data_array, dp.nn_depth_array, 'k')
-        #a.set_xlim([0,30])
-        #a.set_ylim(4,0)
-        #a.xaxis.tick_top()
-
-        #print('TEST:' + str(dp.nn_data_array)) #debug
-        #print(dp.nn_depth_array) #debug
-        #print(dp.data_container['rms_depth'])
-        #canvas = FigureCanvasTkAgg(f, self)
-        #canvas.draw()
-
-        #canvas.get_tk_widget().grid(column = 0, row = 0, pady = 15)
-        #canvas.get_tk_widget().pack(side = tk.BOTTOM, fill = tk.BOTH, expand = True)
+        f = Figure()
 
     def show_figure(self):
         print('Show figure function was called!')
+
+        print(dp.nn_data_array)
+
         fig, ax = plt.subplots(1)
         ax.plot(dp.nn_data_array, dp.nn_depth_array)
         canvas = FigureCanvasTkAgg(fig, self)
@@ -225,6 +213,10 @@ class multiple_figures_page(tk.Frame):
         """
         self.controller.show_frame(landing_page)
 
+
+#initialise data_container class globally
+dp = Data_provider()
+ca = Calculator()
 app = App()
 
 app.mainloop()
