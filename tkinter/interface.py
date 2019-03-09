@@ -15,6 +15,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 import matplotlib.patches as patches
+from os import listdir
+from os.path import isfile, join
 
 large_font  = ('Arial Bold', 16)
 medium_font = ('Arial', 12)
@@ -45,6 +47,7 @@ class Data_provider(object):
 
         self.data_container['interval'] = 0.1
         self.data_container['zero_elevation'] = 0
+        self.data_dict = {} #RENAME! Quick and Dirty!!!
 
 class Calculator(object):
 
@@ -55,6 +58,17 @@ class Calculator(object):
         rms_depth = container.data_container['zero_elevation'] + float(int(len(container.data_container['raw_data'])) * 0.1) #TODO: contains hardcoded data
         
         return float(rms_depth)
+
+    def get_total_depth_raw(self, data):
+        """
+        calculate total depth from raw_data
+        TODO: Refactor. This is getting really messy.
+        This function does not take the dp container input but can handle
+        raw input data which is passed as argument
+        """
+        rms_depth_raw = 0 + float(int(len(data)) * 0.1) #TODO: contains hardcoded data
+        
+        return float(rms_depth_raw)
 
     def convert_data_to_plot_format(self, container):
         """
@@ -89,7 +103,7 @@ class App(tk.Tk):
         #dictionarty which holds all the pages
         self.frames = {}
 
-        for F in (landing_page, figure_page):
+        for F in (landing_page, figure_page, folder_print_page):
             frame = F(master_frame, self)
             self.frames[F] = frame
             frame.grid(row = 0, column = 0, sticky = 'nsew')
@@ -129,15 +143,31 @@ class landing_page(tk.Frame):
         filename = askopenfilename()
         dp.data_container['filename'] = filename
         print('Accessing file: ' + dp.data_container['filename'])
-        self.load_data(filename)
+        self.append_data_to_class(self.load_data(filename))
         self.controller.show_frame(figure_page)
               
     def open_folder(self):
         """
         opens up a folder, containing .dat files
         """
-        foldername = askdirectory()
-        self.foldername = foldername
+        folderpath = askdirectory()
+        self.folderpath = folderpath
+
+        #create an array which contains all filenames in the folder as strs
+        #ignores sub-directories
+        filename_array = [name for name in listdir(self.folderpath) if isfile(join(self.folderpath, name))]
+    
+        #create a dictionary which holds the filename and the loaded data
+        #exp_dict = {
+        #   'rs1.dat' : [1 , 2 , 3 , 6 , 10, 5]   
+        #           }
+
+        for file in filename_array:
+            path_to_file = str(self.folderpath + '/' +file)
+            dp.data_dict[file] = self.load_data(path_to_file)
+
+        self.controller.show_frame(folder_print_page)
+
 
     def load_data(self, filename):
         """
@@ -150,20 +180,101 @@ class landing_page(tk.Frame):
         data_int = [int(i) for i in data]
         data_int = np.array(data_int)
 
-        dp.data_container['raw_data'] = data_int
+        #dp.data_container['raw_data'] = data_int
+        #dp.data_container['rms_depth'] = ca.get_total_depth(dp)
+        #dp.nn_depth_array , dp.nn_data_array = ca.convert_data_to_plot_format(dp)
+
+        return data_int
+
+    def append_data_to_class(self, data):
+        '''
+        TODO: Revisit this function. Quick and dirty solution.
+        '''
+        dp.data_container['raw_data'] = data
         dp.data_container['rms_depth'] = ca.get_total_depth(dp)
         dp.nn_depth_array , dp.nn_data_array = ca.convert_data_to_plot_format(dp)
 
-        global test1
-        global test2
-        test1 = dp.nn_data_array
-        test2 = dp.nn_depth_array
 
-        print(test1, test2)
-        
-        #DEBUG
-        #print(dp.nn_data_array)
-        #print(dp.data_container['rms_depth'])
+
+class folder_print_page(tk.Frame):
+    '''
+    Create a page that asks what options you want to use for 
+    creating multiple figures
+    '''
+
+    def __init__(self, parent, controller):
+
+        #add the controller to self.namespace
+        self.controller = controller
+
+        self._depth = 0
+        self._data = 0
+
+        #initialize frame and label
+        tk.Frame.__init__(self, parent)
+        self.figure_label = tk.Label(self, text= 'Marius stinkt. Scheiss Programm', font = large_font)
+        self.figure_label.grid(column = 0, row = 0 )
+
+        #button to navigate back to main_frame
+        self.back_button = tk.Button(self, text = 'Back', command = self.back_to_home)
+        self.back_button.grid(row = 0, column = 4) 
+
+        self.print_button = tk.Button(self, text = 'Save', command = self.save_figure)
+        self.print_button.grid(row = 0, column = 3)
+
+        self.color_bool = tk.IntVar()
+        self.color_check = tk.Checkbutton(self, text="Colorcoding", variable=self.color_bool)
+        self.color_check.grid(row = 4, column = 4)
+
+        self.fill_between_bool = tk.IntVar()
+        self.fill_check = tk.Checkbutton(self, text = "Fill between", variable = self.fill_between_bool)
+        self.fill_check.grid(row = 4, column = 2)
+
+        self.grid_bool = tk.IntVar()
+        self.grid_check = tk.Checkbutton(self, text = "Grid", variable = self.grid_bool)
+        self.grid_check.grid(row = 4, column = 3)
+
+        #self.create_individual_plot(dp.data_dict)
+
+    def save_figure(self):
+    
+        print('save_figure function was called!')
+
+        #filename = asksaveasfilename()
+        #plt.savefig(str(filename))
+
+        self.create_individual_plot(dp.data_dict)
+            
+
+    def create_individual_plot(self, data):
+
+        for keys in data:
+            self._depth = ca.get_total_depth_raw(dp.data_dict[keys])
+            self._data  = dp.data_dict[keys]
+
+            _depth_nn = np.arange(0, self._depth, 0.1 / 100)
+            _data_nn  = np.repeat(self._data , 100)
+
+
+            fig, ax = plt.subplots(1)
+            ax.plot(_data_nn, _depth_nn, 'k', linewidth = 2.3)
+            ax.set_xlim([0,10])
+            lower_ylim = round(self._depth + 0.5)
+            ax.set_ylim([lower_ylim, 0])
+            ax.xaxis.tick_top()
+            ax.set_xlabel("Schlagzahl", fontsize = 18)
+            ax.set_ylabel("Tiefe [m]", fontsize = 18)
+            plt.savefig(str(f'test_{keys}.png'))
+
+    
+    def back_to_home(self):
+        """
+        This probably can get a global function. 
+        Navigates back to home
+        """
+        #plt.close(self.fig)
+        self.controller.show_frame(landing_page)
+
 
 class figure_page(tk.Frame):
 
