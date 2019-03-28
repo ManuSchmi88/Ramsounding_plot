@@ -103,7 +103,7 @@ class App(tk.Tk):
         #dictionarty which holds all the pages
         self.frames = {}
 
-        for F in (landing_page, figure_page, folder_print_page):
+        for F in (landing_page, figure_page):
             frame = F(master_frame, self)
             self.frames[F] = frame
             frame.grid(row = 0, column = 0, sticky = 'nsew')
@@ -166,7 +166,9 @@ class landing_page(tk.Frame):
             path_to_file = str(self.folderpath + '/' +file)
             dp.data_dict[file] = self.load_data(path_to_file)
 
-        self.controller.show_frame(folder_print_page)
+            #self.controller.show_frame(folder_print_page)
+            self.append_data_to_class(dp.data_dict[file])
+            self.controller.show_frame(figure_page)
 
 
     def load_data(self, filename):
@@ -194,86 +196,6 @@ class landing_page(tk.Frame):
         dp.data_container['rms_depth'] = ca.get_total_depth(dp)
         dp.nn_depth_array , dp.nn_data_array = ca.convert_data_to_plot_format(dp)
 
-
-
-class folder_print_page(tk.Frame):
-    '''
-    Create a page that asks what options you want to use for 
-    creating multiple figures
-    '''
-
-    def __init__(self, parent, controller):
-
-        #add the controller to self.namespace
-        self.controller = controller
-
-        self._depth = 0
-        self._data = 0
-
-        #initialize frame and label
-        tk.Frame.__init__(self, parent)
-        self.figure_label = tk.Label(self, text= 'Marius stinkt. Scheiss Programm', font = large_font)
-        self.figure_label.grid(column = 0, row = 0 )
-
-        #button to navigate back to main_frame
-        self.back_button = tk.Button(self, text = 'Back', command = self.back_to_home)
-        self.back_button.grid(row = 0, column = 4) 
-
-        self.print_button = tk.Button(self, text = 'Save', command = self.save_figure)
-        self.print_button.grid(row = 0, column = 3)
-
-        self.color_bool = tk.IntVar()
-        self.color_check = tk.Checkbutton(self, text="Colorcoding", variable=self.color_bool)
-        self.color_check.grid(row = 4, column = 4)
-
-        self.fill_between_bool = tk.IntVar()
-        self.fill_check = tk.Checkbutton(self, text = "Fill between", variable = self.fill_between_bool)
-        self.fill_check.grid(row = 4, column = 2)
-
-        self.grid_bool = tk.IntVar()
-        self.grid_check = tk.Checkbutton(self, text = "Grid", variable = self.grid_bool)
-        self.grid_check.grid(row = 4, column = 3)
-
-        #self.create_individual_plot(dp.data_dict)
-
-    def save_figure(self):
-    
-        print('save_figure function was called!')
-
-        #filename = asksaveasfilename()
-        #plt.savefig(str(filename))
-
-        self.create_individual_plot(dp.data_dict)
-            
-
-    def create_individual_plot(self, data):
-
-        for keys in data:
-            self._depth = ca.get_total_depth_raw(dp.data_dict[keys])
-            self._data  = dp.data_dict[keys]
-
-            _depth_nn = np.arange(0, self._depth, 0.1 / 100)
-            _data_nn  = np.repeat(self._data , 100)
-
-
-            fig, ax = plt.subplots(1)
-            ax.plot(_data_nn, _depth_nn, 'k', linewidth = 2.3)
-            ax.set_xlim([0,10])
-            lower_ylim = round(self._depth + 0.5)
-            ax.set_ylim([lower_ylim, 0])
-            ax.xaxis.tick_top()
-            ax.set_xlabel("Schlagzahl", fontsize = 18)
-            ax.set_ylabel("Tiefe [m]", fontsize = 18)
-            plt.savefig(str(f'test_{keys}.png'))
-
-    
-    def back_to_home(self):
-        """
-        This probably can get a global function. 
-        Navigates back to home
-        """
-        #plt.close(self.fig)
-        self.controller.show_frame(landing_page)
 
 
 class figure_page(tk.Frame):
